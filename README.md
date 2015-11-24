@@ -11,28 +11,65 @@ Tested on node-5.10.x, requires npm.
 
 ``` sh
   $ npm install winston
-  $ TBD
+  $ npm install winston-azure-application-insights
 ```
 ## Usage
 
-See demo.js for a small example.
+**Instrumentation key**
+>**Note**: an instrumentation key is required before any data can be sent. Please see the
+"[Getting an Application Insights Instrumentation Key](https://github.com/Microsoft/AppInsights-Home/wiki#getting-an-application-insights-instrumentation-key)"
+for more information.
+
+The instrumentation key can be supplied in 4 ways:
+
+* Specifying the "key" property in the options of this transport
 
 ```javascript
-var winston = require('winston'),
-	aiLogger = require('./lib/winston-azure-application-insights').AzureApplicationInsightsLogger;
-
-winston.add(aiLogger);
-winston.remove(winston.transports.Console);
-
-winston.info("Let's log something new...");
-winston.error("This is an error log!");
-winston.warn("And this is a warning message.");
-winston.log("info", "Log with some metadata", {
-	question: "Answer to the Ultimate Question of Life, the Universe, and Everything",
-	answer: 42
+var aiLogger = require('winston-azure-application-insights').AzureApplicationInsightsLogger;
+winston.add(aiLogger, {
+	key: "<YOUR_INSTRUMENTATION_KEY_HERE>"
 });
-
 ```
+
+* Passing an initialized Application Insights module reference in the "insights" options property. This may be useful
+ if you want to configure AI to suit your needs.
+
+```javascript
+var appInsights = require("applicationinsights"),
+	aiLogger = require('winston-azure-application-insights').AzureApplicationInsightsLogger;
+
+appInsights.setup("<YOUR_INSTRUMENTATION_KEY_HERE>").start();
+
+winston.add(aiLogger, {
+	insights: appInsights
+});
+```
+
+* Passing an initialized Application Insights client in the "client" options property
+
+```javascript
+var appInsights = require("applicationinsights"),
+	aiLogger = require('winston-azure-application-insights').AzureApplicationInsightsLogger;
+
+appInsights.setup("<YOUR_INSTRUMENTATION_KEY_HERE>").start();
+
+winston.add(aiLogger, {
+	client: appInsights.getClient("<ANOTHER_INSTRUMENTATION_KEY_HERE>")
+});
+```
+
+* Setting the APPINSIGHTS_INSTRUMENTATIONKEY environment variable (supported by the Application Insights SDK)
+
+** I get an error when using the logger **
+
+If you see the error:
+"Instrumentation key not found, pass the key in the config to this method or set the key in the environment variable APPINSIGHTS_INSTRUMENTATIONKEY before starting the server"
+
+Then you didn't specify a suitable instrumentation key. See the section above.
+
+## Examples
+
+See demo.js for a small example.
 
 ## Options
 

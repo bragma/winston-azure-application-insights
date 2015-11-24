@@ -1,0 +1,34 @@
+{
+  "name": "winston-azure-application-insights",
+  "version": "0.0.1",
+  "description": "Azure Application Insights transport for Winston",
+  "main": "./lib/winston-azure-application-insights.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bragma/winston-azure-application-insights.git"
+  },
+  "keywords": [
+    "winston",
+    "azure",
+    "insights",
+    "logging"
+  ],
+  "author": "Marco Braga (Bragma)",
+  "license": "MIT",
+  "devDependencies": {
+  },
+  "dependencies": {
+	  "applicationinsights": "^0.15.8",
+	  "winston": "^2.1.1"
+  },
+  "bugs": {
+    "url": "https://github.com/bragma/winston-azure-application-insights/issues"
+  },
+  "homepage": "https://github.com/bragma/winston-azure-application-insights#readme"
+}

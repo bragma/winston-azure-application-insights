@@ -1,7 +1,7 @@
 winston-azure-application-insights
 ==================================
 
-An [Azure Application Insights][0] transport for [Winston][1] logging library.
+An [Azure Application Insights][0] transport for [Winston][1] logging library. Allows to log on App Insights trace with Winston.
 
 **THIS IS AN ALPHA VERSION, USE AT YOU OWN RISK!**
 
@@ -13,10 +13,14 @@ Tested on node-5.10.x, requires npm.
   $ npm install winston
   $ npm install winston-azure-application-insights
 ```
+
 ## Usage
 
+See `demo.js` for a small example.
+
 **Instrumentation key**
->**Note**: an instrumentation key is required before any data can be sent. Please see the
+
+**Note**: an instrumentation key is required before any data can be sent. Please see the
 "[Getting an Application Insights Instrumentation Key](https://github.com/Microsoft/AppInsights-Home/wiki#getting-an-application-insights-instrumentation-key)"
 for more information.
 
@@ -62,26 +66,33 @@ winston.add(aiLogger, {
 });
 ```
 
-* Setting the APPINSIGHTS_INSTRUMENTATIONKEY environment variable (supported by the Application Insights SDK)
+* Setting the `APPINSIGHTS_INSTRUMENTATIONKEY` environment variable (supported by the Application Insights SDK)
 
 **I get an error when using this transport**
 
 If you receive the error:
+
 "Instrumentation key not found, pass the key in the config to this method or set the key in the environment variable APPINSIGHTS_INSTRUMENTATIONKEY before starting the server"
 
 Then you didn't specify a suitable instrumentation key. See the section above.
 
-## Examples
-
-See `demo.js` for a small example.
 
 ## Options
 
-TBD
+* **level**: lowest logging level transport to be logged (default: `info`)
+* **silent**: Boolean flag indicating whether to suppress output (default: `false`)
+
+**SDK integration options (required):**
+
+Ony one of the above option parameters will be used, in this order: client, insights, key.
+
+* **client**: An existing App Insights client
+* **insights**: An App Insights SDK instance (needs to be already started)
+* **key**: App Insights instrumentation key. An instance of the SDK will be initialized and started using this key. In lieu of this setting, you can set the environment variable: `APPINSIGHTS_INSTRUMENTATIONKEY`
 
 ## Log Levels
 
-Supported log levels are the following:
+Supported log levels are:
 
 Winston Level | App Insights level
 ---------------|------------------

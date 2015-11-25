@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "gulp test"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,10 @@
   ],
   "author": "Marco Braga (Bragma)",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+	  "mocha": "^2.3.4",
+	  "chai": "^3.4.1"
+  },
   "dependencies": {
     "applicationinsights": "^0.15.8",
     "winston": "^2.1.1"

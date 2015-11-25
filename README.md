@@ -3,13 +3,13 @@ winston-azure-application-insights
 
 An [Azure Application Insights][0] transport for [Winston][1] logging library.
 
-** THIS IS AN ALPHA VERSION, USE AT YOU OWN RISK! **
+**THIS IS AN ALPHA VERSION, USE AT YOU OWN RISK!**
 
 ## Installation
 
 Tested on node-5.10.x, requires npm.
 
-``` sh
+```sh
   $ npm install winston
   $ npm install winston-azure-application-insights
 ```
@@ -22,17 +22,19 @@ for more information.
 
 The instrumentation key can be supplied in 4 ways:
 
-* Specifying the "key" property in the options of this transport
+* Specifying the "key" property in the options of the transport:
 
 ```javascript
 var aiLogger = require('winston-azure-application-insights').AzureApplicationInsightsLogger;
+
+// Create an app insights client with the given key
 winston.add(aiLogger, {
 	key: "<YOUR_INSTRUMENTATION_KEY_HERE>"
 });
 ```
 
-* Passing an initialized Application Insights module reference in the "insights" options property. This may be useful
- if you want to configure AI to suit your needs.
+* Passing an initialized Application Insights module reference in the "insights" options property (This may be useful
+ if you want to configure AI to suit your needs):
 
 ```javascript
 var appInsights = require("applicationinsights"),
@@ -40,12 +42,13 @@ var appInsights = require("applicationinsights"),
 
 appInsights.setup("<YOUR_INSTRUMENTATION_KEY_HERE>").start();
 
+// Use an existing app insights SDK instance
 winston.add(aiLogger, {
 	insights: appInsights
 });
 ```
 
-* Passing an initialized Application Insights client in the "client" options property
+* Passing an initialized Application Insights client in the "client" options property:
 
 ```javascript
 var appInsights = require("applicationinsights"),
@@ -53,6 +56,7 @@ var appInsights = require("applicationinsights"),
 
 appInsights.setup("<YOUR_INSTRUMENTATION_KEY_HERE>").start();
 
+// Create a new app insights client with another key
 winston.add(aiLogger, {
 	client: appInsights.getClient("<ANOTHER_INSTRUMENTATION_KEY_HERE>")
 });
@@ -60,22 +64,23 @@ winston.add(aiLogger, {
 
 * Setting the APPINSIGHTS_INSTRUMENTATIONKEY environment variable (supported by the Application Insights SDK)
 
-** I get an error when using the logger **
+**I get an error when using this transport**
 
-If you see the error:
+If you receive the error:
 "Instrumentation key not found, pass the key in the config to this method or set the key in the environment variable APPINSIGHTS_INSTRUMENTATIONKEY before starting the server"
 
 Then you didn't specify a suitable instrumentation key. See the section above.
 
 ## Examples
 
-See demo.js for a small example.
+See `demo.js` for a small example.
 
 ## Options
 
 TBD
 
 ## Log Levels
+
 Supported log levels are the following:
 
 Winston Level | App Insights level

@@ -150,13 +150,24 @@ describe ('winston-azure-application-insights', function() {
 				aiLogger.log('info', 'some log text...');
 			});
 	
-			it('should default unknown log levels to info', function() {
-				var logMessage = "some log text...",
-					logLevel = 'undefined'
-	
-				expectTrace.once().withExactArgs(logMessage, 1, undefined);
+			it('should log with correct log levels', function() {
+				clientMock.expects("trackTrace").once().withArgs('emerg', 4);
+				clientMock.expects("trackTrace").once().withArgs('alert', 4);
+				clientMock.expects("trackTrace").once().withArgs('crit', 4);
+				clientMock.expects("trackTrace").once().withArgs('error', 3);
+				clientMock.expects("trackTrace").once().withArgs('warning', 2);
+				clientMock.expects("trackTrace").once().withArgs('warn', 2);
+				clientMock.expects("trackTrace").once().withArgs('notice', 1);
+				clientMock.expects("trackTrace").once().withArgs('info', 1);
+				clientMock.expects("trackTrace").once().withArgs('verbose', 0);
+				clientMock.expects("trackTrace").once().withArgs('debug', 0);
+				clientMock.expects("trackTrace").once().withArgs('silly', 0);
+				clientMock.expects("trackTrace").once().withArgs('undefined', 1);
 				
-				aiLogger.log(logLevel, logMessage);
+				[ 'emerg', 'alert', 'crit', 'error', 'warning', 'warn', 'notice', 'info', 'verbose', 'debug', 'silly', 'undefined']
+				.forEach(function(level) {
+					aiLogger.log(level, level);
+				});
 			});
 		});
 	});

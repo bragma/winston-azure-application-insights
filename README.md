@@ -3,8 +3,6 @@ winston-azure-application-insights
 
 An [Azure Application Insights][0] transport for [Winston][1] logging library. Allows to log on App Insights trace with Winston.
 
-**THIS IS AN ALPHA VERSION, USE AT YOU OWN RISK!**
-
 ## Installation
 
 Tested on node-5.10.x, requires npm.

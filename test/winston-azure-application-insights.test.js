@@ -174,20 +174,26 @@ describe ('winston-azure-application-insights', function() {
 
 	describe('winston', function() {
 		
+		function ExtendedError(message, arg1, arg2) {
+			this.message = message;
+			this.name = "ExtendedError";
+			this.arg1 = arg1;
+			this.arg2 = arg2;
+			Error.captureStackTrace(this, ExtendedError);
+		}
+		ExtendedError.prototype = Object.create(Error.prototype);
+		ExtendedError.prototype.constructor = ExtendedError;
+
 		var winstonLogger,
 			clientMock,
 			expectTrace;
-			
+
 		beforeEach(function() {
 			
 			winstonLogger = new(winston.Logger)({
-				transports: [
-					new winston.transports.AzureApplicationInsightsLogger({
-						key: 'FAKEKEY'
-					})
-				]
+				transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY' })	]
 			});
-			
+
 			clientMock = sinon.mock(appInsights.client);
 			expectTrace = clientMock.expects("trackTrace");
 		})
@@ -196,18 +202,45 @@ describe ('winston-azure-application-insights', function() {
 			clientMock.restore();
 		});
 	
-		
 		it('should log from winston', function() {
 			var logMessage = "some log text...",
-				logLevel = 'info',
+				logLevel = 'error',
 				logMeta = {
 					text: 'some meta text',
 					value: 42
 				};
 
-			expectTrace.once().withExactArgs(logMessage, 1, logMeta);
+			expectTrace.once().withExactArgs(logMessage, 3, logMeta);
 
 			winstonLogger.log(logLevel, logMessage, logMeta);
-		});		
+		});
+
+		it('should log errors with all fields', function() {
+			var error = new ExtendedError("errormessage", "arg1", "arg2");
+
+			expectTrace.once().withExactArgs(error.message, 3, {
+				arg1: error.arg1,
+				arg2: error.arg2,
+				name: error.name,
+				stack: error.stack
+			});
+
+			winstonLogger.error(error);
+		});
+
+		it('should log errors with all fields and message', function() {
+			var message = "message";
+			var error = new ExtendedError("errormessage", "arg1", "arg2");
+
+			expectTrace.once().withExactArgs(message, 3, {
+				arg1: error.arg1,
+				arg2: error.arg2,
+				message: error.message,
+				name: error.name,
+				stack: error.stack
+			});
+
+			winstonLogger.error(message, error);
+		});
 	});
 });

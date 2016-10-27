@@ -79,6 +79,8 @@ Then you didn't specify a suitable instrumentation key. See the section above.
 
 * **level**: lowest logging level transport to be logged (default: `info`)
 * **silent**: Boolean flag indicating whether to suppress output (default: `false`)
+* **treatErrorsAsExceptions**: Boolean flag indicating whether to treat errors as exceptions. 
+See section below for more details (default: `false`).
 
 **SDK integration options (required):**
 
@@ -110,3 +112,17 @@ silly          | verbose (0)
 
 [0]: https://azure.microsoft.com/en-us/services/application-insights/
 [1]: https://github.com/flatiron/winston
+
+## Treating errors as exceptions
+
+You can set the option `treatErrorsAsExceptions` when configuring the transport to treat errors as app insights exceptions for log levels >= `error` (defaults to `false`).
+
+This allows you to see it clearly in the Azure Application Insights instead of having to access trace information manually and set up alerts based on the related metrics.
+
+How it works:
+
+* `winstonLogger.log('error', 'error message');` will trigger an app insights `trackException` with `Error('error message')` as argument
+
+* `winstonLogger.log('error', new Error('error message'));` will trigger an app insights `trackException` with the Error object as argument
+
+* `winstonLogger.log('error', 'error message', new Error('error message'));` will trigger an app insights `trackException` with the Error object as argument

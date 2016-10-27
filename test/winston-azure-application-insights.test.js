@@ -170,6 +170,87 @@ describe ('winston-azure-application-insights', function() {
 				});
 			});
 		});
+		
+		describe('#log errors as exceptions', function() {
+	
+			var aiLogger,
+				clientMock;
+
+			beforeEach(function() {
+				aiLogger = new transport.AzureApplicationInsightsLogger(
+					{ key: 'FAKEKEY', treatErrorsAsExceptions: true }
+				);
+				clientMock = sinon.mock(aiLogger.client);
+			})
+			
+			afterEach(function() {
+				clientMock.restore();
+			});
+
+
+			it('should not track exceptions with default option', function() {
+				aiLogger = new transport.AzureApplicationInsightsLogger({ key: 'FAKEKEY' });
+				
+				clientMock.expects("trackException").never();
+				
+				aiLogger.log('error', 'error message');
+			});
+			
+			it('should not track exceptions if the option is off', function() {
+				aiLogger = new transport.AzureApplicationInsightsLogger({
+					key: 'FAKEKEY', treatErrorsAsExceptions: false
+				});
+	
+				clientMock.expects("trackException").never();
+				
+				aiLogger.log('error', 'error message');
+			});
+
+			it('should not track exceptions if level < error', function() {
+				clientMock.expects("trackException").never();
+
+				['warning', 'warn', 'notice', 'info', 'verbose', 'debug', 'silly', 'undefined']
+				.forEach(function(level) {
+					aiLogger.log(level, level);
+				});
+				clientMock.verify();
+			});
+
+			it('should track exceptions if level >= error and msg is a string', function() {
+				var error = new Error('error msg');
+
+				clientMock.expects("trackException").once().withArgs(error);
+				clientMock.expects("trackException").once().withArgs(error);
+				clientMock.expects("trackException").once().withArgs(error);
+				clientMock.expects("trackException").once().withArgs(error);
+
+				[ 'emerg', 'alert', 'crit', 'error']
+				.forEach(function(level) {
+					aiLogger.log(level, 'error msg');
+				});
+				clientMock.verify();
+			});
+
+			it('should track exceptions if level == error and msg is an Error obj', function() {
+				var error = new Error('error msg');
+				var expectedCall = clientMock.expects("trackException");
+
+				expectedCall.once().withArgs(error);
+				aiLogger.log('error', error);
+				clientMock.verify();
+				assert.equal(expectedCall.args[0][0].message, error.message);
+			});
+
+			it('should track exceptions if level == error and meta is an Error obj', function() {
+				var error = new Error('error msg');
+				var expectedCall = clientMock.expects("trackException");
+
+				expectedCall.once().withArgs(error);
+				aiLogger.log('error', 'some message', error);
+				clientMock.verify();
+				assert.equal(expectedCall.args[0][0].message, error.message);
+			});
+		});
 	});
 
 	describe('winston', function() {

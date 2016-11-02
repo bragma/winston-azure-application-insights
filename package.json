@@ -23,7 +23,8 @@
   "license": "MIT",
   "devDependencies": {
     "mocha": "^2.3.4",
-    "chai": "^3.4.1"
+    "chai": "^3.4.1",
+    "sinon": "^1.17.6"
   },
   "dependencies": {
     "applicationinsights": "^0.15.8",

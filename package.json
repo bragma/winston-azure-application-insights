@@ -27,7 +27,7 @@
     "sinon": "^1.17.6"
   },
   "dependencies": {
-    "applicationinsights": "^0.15.8",
+    "applicationinsights": "^0.17.0",
     "winston": "^2.1.1"
   },
   "bugs": {

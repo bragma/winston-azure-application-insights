@@ -218,14 +218,20 @@ describe ('winston-azure-application-insights', function() {
 
 			it('should track exceptions if level >= error and msg is a string', function() {
 				var error = new Error('error msg');
-
+/*
 				clientMock.expects("trackException").once().withArgs(error);
 				clientMock.expects("trackException").once().withArgs(error);
 				clientMock.expects("trackException").once().withArgs(error);
 				clientMock.expects("trackException").once().withArgs(error);
-
+				clientMock.expects("trackTrace").never();
+				clientMock.expects("trackTrace").never();
+				clientMock.expects("trackTrace").never();
+				clientMock.expects("trackTrace").never();
+*/
 				[ 'emerg', 'alert', 'crit', 'error']
 				.forEach(function(level) {
+					clientMock.expects("trackException").once().withArgs(error);
+					clientMock.expects("trackTrace").never();
 					aiLogger.log(level, 'error msg');
 				});
 				clientMock.verify();

@@ -77,10 +77,13 @@ Then you didn't specify a suitable instrumentation key. See the section above.
 
 ## Options
 
-* **level**: lowest logging level transport to be logged (default: `info`)
-* **silent**: Boolean flag indicating whether to suppress output (default: `false`)
-* **treatErrorsAsExceptions**: Boolean flag indicating whether to treat errors as exceptions. 
-See section below for more details (default: `false`).
+* **level** (default: `info`): lowest logging level transport to be logged
+* **silent** (default: `false`): Boolean flag indicating whether to suppress output
+* **formatMeta** (default: metadata is not modified): Function that can be used to pre-process the log metadata before it is sent to Azure. As application insights doesn't support nested properties, you can use the special value `"flat"` to flatten nested properties with underscores
+* **maxFlatMetaDepth** (default: 20): if metadata are flattened, this is the maximum depth of the metadata object nested properties, starting from 1 for properties of the main metadata object. If any property is deeper than this level, it is either ignored or an error is thrown, as set by **maxFlatMetaDepthBehavior**
+* **maxFlatMetaDepthBehavior** (default: `ignore`): if metedata object has nested properties deeper than **maxFlatMetaDepth**, the offending property can be ignored or an error is thrown. Valid values: `throw` or `ignore`. Anything different is treated as `ignore`
+* **treatErrorsAsExceptions** (default: `false`): Boolean flag indicating whether to treat errors as exceptions.
+See section below for more details
 
 **SDK integration options (required):**
 

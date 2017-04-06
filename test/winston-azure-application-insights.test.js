@@ -3,7 +3,7 @@
 
 var assert = require('chai').assert,
 	sinon = require('sinon');
-	
+
 var winston = require('winston'),
 	appInsights = require("applicationinsights"),
 	transport = require('../lib/winston-azure-application-insights');
@@ -17,126 +17,126 @@ afterEach(function() {
 describe ('winston-azure-application-insights', function() {
 	describe('class', function() {
 		describe('constructor', function() {
-	
+
 			beforeEach(function() {
 				delete process.env['APPINSIGHTS_INSTRUMENTATIONKEY'];
 			});
-	
+
 			it('should fail if no instrumentation insights instance, client or key specified', function() {
 				assert.throws(function() {
 					new transport.AzureApplicationInsightsLogger();
 				}, /key not found/);
 			});
-			
+
 			it('should accept an App Insights instance with the insights option', function() {
-				
+
 				var aiLogger;
-				
+
 				assert.doesNotThrow(function() {
 					appInsights.setup('FAKEKEY');
-				
+
 					aiLogger = new transport.AzureApplicationInsightsLogger({
 						insights: appInsights
 					});
 				});
-				
+
 				assert.ok(aiLogger.client);
 			});
-			
+
 			it('should accept an App Insights client with the client option', function() {
-				
+
 				var aiLogger;
-				
+
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger({
 						client: appInsights.getClient('FAKEKEY')
 					});
 				});
-				
+
 				assert.ok(aiLogger.client);
 			});
-	
+
 			it('should accept an instrumentation key with the key option', function() {
-				
+
 				var aiLogger;
-	
+
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger({
 						key: 'FAKEKEY'
 					});
 				});
-	
+
 				assert.ok(aiLogger.client);
 			});
-	
+
 			it('should use the APPINSIGHTS_INSTRUMENTATIONKEY environment variable if defined', function() {
-				
+
 				var aiLogger;
-	
+
 				process.env['APPINSIGHTS_INSTRUMENTATIONKEY'] = 'FAKEKEY';
-	
+
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger();
 				});
-	
+
 				assert.ok(aiLogger.client);
 			});
-			
+
 			it('should set default logging level to info', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 						key: 'FAKEKEY'
 					});
-					
-				assert.equal(aiLogger.level, 'info'); 
+
+				assert.equal(aiLogger.level, 'info');
 			});
-			
+
 			it('should set logging level', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 						key: 'FAKEKEY',
 						level: 'warn'
 					});
-					
-				assert.equal(aiLogger.level, 'warn'); 
+
+				assert.equal(aiLogger.level, 'warn');
 			});
-			
+
 			it('should set default silent to false', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY'
 				});
-					
-				assert.notOk(aiLogger.silent); 
+
+				assert.notOk(aiLogger.silent);
 			});
-	
+
 			it('should set silent', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY',
 					silent: true
 				});
-					
-				assert.ok(aiLogger.silent); 
+
+				assert.ok(aiLogger.silent);
 			});
-			
+
 			it('should declare a Winston logger', function() {
 				new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY'
 				});
-				
+
 				assert.ok(winston.transports.AzureApplicationInsightsLogger);
 			});
 		});
-		
+
 		describe('#log', function() {
-	
+
 			var aiLogger,
 				clientMock,
 				expectTrace;
-			
+
 			beforeEach(function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({ key: 'FAKEKEY' });
 				clientMock = sinon.mock(appInsights.client);
 				expectTrace = clientMock.expects("trackTrace");
 			})
-			
+
 			afterEach(function() {
 				clientMock.restore();
 			});
@@ -144,12 +144,12 @@ describe ('winston-azure-application-insights', function() {
 
 			it('should not log if silent', function() {
 				aiLogger.silent = true;
-	
+
 				expectTrace.never();
-				
+
 				aiLogger.log('info', 'some log text...');
 			});
-	
+
 			it('should log with correct log levels', function() {
 				clientMock.expects("trackTrace").once().withArgs('emerg', 4);
 				clientMock.expects("trackTrace").once().withArgs('alert', 4);
@@ -163,16 +163,16 @@ describe ('winston-azure-application-insights', function() {
 				clientMock.expects("trackTrace").once().withArgs('debug', 0);
 				clientMock.expects("trackTrace").once().withArgs('silly', 0);
 				clientMock.expects("trackTrace").once().withArgs('undefined', 1);
-				
+
 				[ 'emerg', 'alert', 'crit', 'error', 'warning', 'warn', 'notice', 'info', 'verbose', 'debug', 'silly', 'undefined']
 				.forEach(function(level) {
 					aiLogger.log(level, level);
 				});
 			});
 		});
-		
+
 		describe('#log errors as exceptions', function() {
-	
+
 			var aiLogger,
 				clientMock;
 
@@ -182,7 +182,7 @@ describe ('winston-azure-application-insights', function() {
 				);
 				clientMock = sinon.mock(aiLogger.client);
 			})
-			
+
 			afterEach(function() {
 				clientMock.restore();
 			});
@@ -190,19 +190,19 @@ describe ('winston-azure-application-insights', function() {
 
 			it('should not track exceptions with default option', function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({ key: 'FAKEKEY' });
-				
+
 				clientMock.expects("trackException").never();
-				
+
 				aiLogger.log('error', 'error message');
 			});
-			
+
 			it('should not track exceptions if the option is off', function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY', treatErrorsAsExceptions: false
 				});
-	
+
 				clientMock.expects("trackException").never();
-				
+
 				aiLogger.log('error', 'error message');
 			});
 
@@ -260,7 +260,7 @@ describe ('winston-azure-application-insights', function() {
 	});
 
 	describe('winston', function() {
-		
+
 		function ExtendedError(message, arg1, arg2) {
 			this.message = message;
 			this.name = "ExtendedError";
@@ -276,7 +276,7 @@ describe ('winston-azure-application-insights', function() {
 			expectTrace;
 
 		beforeEach(function() {
-			
+
 			winstonLogger = new(winston.Logger)({
 				transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY' })	]
 			});
@@ -284,11 +284,11 @@ describe ('winston-azure-application-insights', function() {
 			clientMock = sinon.mock(appInsights.client);
 			expectTrace = clientMock.expects("trackTrace");
 		})
-		
+
 		afterEach(function() {
 			clientMock.restore();
 		});
-	
+
 		it('should log from winston', function() {
 			var logMessage = "some log text...",
 				logLevel = 'error',
@@ -329,5 +329,207 @@ describe ('winston-azure-application-insights', function() {
 
 			winstonLogger.error(message, error);
 		});
+
+		context('with formatMeta=flat and maxFlatMetaDepth=3', function() {
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: 'flat', maxFlatMetaDepth: 3 })	]
+				});
+
+			})
+
+			it('should ignore property deeper than max', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						text: 'some meta text',
+						p1_depth1: {
+							depth2: {
+								depth3: "ok"
+							}
+						},
+						p2_depth1: {
+							depth2: {
+								depth3: {
+									depth4: "Too deep"
+								}
+							}
+						},
+					};
+
+				expectTrace.once().withExactArgs(logMessage, 2, {
+					text: 'some meta text',
+					p1_depth1_depth2_depth3: 'ok'
+				});
+
+				winstonLogger.log(logLevel, logMessage, logMeta);
+			});
+		})
+
+		context('with formatMeta=flat, maxFlatMetaDepth=3, maxFlatMetaDepthBehavior=throw', function() {
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: 'flat', maxFlatMetaDepth: 3, maxFlatMetaDepthBehavior: 'throw' })	]
+				});
+
+			})
+
+			it('should throw on property deeper than max', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						depth1: {
+							depth2: {
+								depth3: {
+									depth4: "Too deep"
+								}
+							}
+						},
+					};
+
+				assert.throws(function() {
+					winstonLogger.log(logLevel, logMessage, logMeta);
+				}, /depth of recursion/);
+			});
+		})
+
+		context('with formatMeta as a function', function() {
+
+			function removePassword(meta) {
+				if (meta.password) {
+					delete meta.password;
+				}
+				return meta;
+			}
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: removePassword })	]
+				});
+			})
+
+			it('should log from winston applying formatMeta', function() {
+				var logMessage = "some log text...",
+					logLevel = 'debug',
+					logMeta = {
+						text: 'some meta text',
+						password: 'dont want this!',
+					};
+
+				expectTrace.once().withExactArgs(logMessage, 0, {
+					text: 'some meta text',
+				});
+
+				winstonLogger.log(logLevel, logMessage, logMeta);
+			});
+		})
+
+
+		context('with formatMeta=flat', function() {
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: 'flat' })	]
+				});
+
+			})
+
+			it('should log from winston with nested fields flattened', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						text: 'some meta text',
+						object: {
+							has: {
+								stuff: 'inside'
+							},
+							and: 'other bits'
+						}
+					};
+
+				expectTrace.once().withExactArgs(logMessage, 2, {
+					text: 'some meta text',
+					object_has_stuff: 'inside',
+					object_and: 'other bits'
+				});
+
+				winstonLogger.log(logLevel, logMessage, logMeta);
+			});
+
+			it('should ignore property if there is a reference cycle', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						text: 'some meta text',
+						object: {
+							has: {
+								stuff: 'inside'
+							},
+							and: 'other bits'
+						}
+					};
+
+				// create a reference cycle
+				logMeta.object.cycle = logMeta.object;
+
+				expectTrace.once().withExactArgs(logMessage, 2, {
+					text: 'some meta text',
+					object_has_stuff: 'inside',
+					object_and: 'other bits'
+				});
+			});
+
+
+			it('should log errors with nested fields flattend', function() {
+				var error = new ExtendedError("errormessage", "arg1", {"isan": "object"});
+
+				expectTrace.once().withExactArgs(error.message, 3, {
+					arg1: error.arg1,
+					arg2_isan: error.arg2.isan,
+					name: error.name,
+					stack: error.stack
+				});
+
+				winstonLogger.error(error);
+			});
+		})
+
+		context('with formatMeta as a function', function() {
+
+			function removePassword(meta) {
+				if (meta.password) {
+					delete meta.password;
+				}
+				return meta;
+			}
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: removePassword })	]
+				});
+			})
+
+			it('should log from winston applying formatMeta', function() {
+				var logMessage = "some log text...",
+					logLevel = 'debug',
+					logMeta = {
+						text: 'some meta text',
+						password: 'dont want this!',
+					};
+
+				expectTrace.once().withExactArgs(logMessage, 0, {
+					text: 'some meta text',
+				});
+
+				winstonLogger.log(logLevel, logMessage, logMeta);
+			});
+		})
 	});
 });

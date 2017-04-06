@@ -330,6 +330,106 @@ describe ('winston-azure-application-insights', function() {
 			winstonLogger.error(message, error);
 		});
 
+		context('with formatMeta=flat and maxFlatMetaDepth=3', function() {
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: 'flat', maxFlatMetaDepth: 3 })	]
+				});
+
+			})
+
+			it('should ignore property deeper than max', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						text: 'some meta text',
+						p1_depth1: {
+							depth2: {
+								depth3: "ok"
+							}
+						},
+						p2_depth1: {
+							depth2: {
+								depth3: {
+									depth4: "Too deep"
+								}
+							}
+						},
+					};
+
+				expectTrace.once().withExactArgs(logMessage, 2, {
+					text: 'some meta text',
+					p1_depth1_depth2_depth3: 'ok'
+				});
+
+				winstonLogger.log(logLevel, logMessage, logMeta);
+			});
+		})
+
+		context('with formatMeta=flat, maxFlatMetaDepth=3, maxFlatMetaDepthBehavior=throw', function() {
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: 'flat', maxFlatMetaDepth: 3, maxFlatMetaDepthBehavior: 'throw' })	]
+				});
+
+			})
+
+			it('should throw on property deeper than max', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						depth1: {
+							depth2: {
+								depth3: {
+									depth4: "Too deep"
+								}
+							}
+						},
+					};
+
+				assert.throws(function() {
+					winstonLogger.log(logLevel, logMessage, logMeta);
+				}, /depth of recursion/);
+			});
+		})
+
+		context('with formatMeta as a function', function() {
+
+			function removePassword(meta) {
+				if (meta.password) {
+					delete meta.password;
+				}
+				return meta;
+			}
+
+			beforeEach(function() {
+
+				winstonLogger = new(winston.Logger)({
+					transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY', formatMeta: removePassword })	]
+				});
+			})
+
+			it('should log from winston applying formatMeta', function() {
+				var logMessage = "some log text...",
+					logLevel = 'debug',
+					logMeta = {
+						text: 'some meta text',
+						password: 'dont want this!',
+					};
+
+				expectTrace.once().withExactArgs(logMessage, 0, {
+					text: 'some meta text',
+				});
+
+				winstonLogger.log(logLevel, logMessage, logMeta);
+			});
+		})
+
+
 		context('with formatMeta=flat', function() {
 
 			beforeEach(function() {
@@ -361,6 +461,30 @@ describe ('winston-azure-application-insights', function() {
 
 				winstonLogger.log(logLevel, logMessage, logMeta);
 			});
+
+			it('should ignore property if there is a reference cycle', function() {
+				var logMessage = "some log text...",
+					logLevel = 'warn',
+					logMeta = {
+						text: 'some meta text',
+						object: {
+							has: {
+								stuff: 'inside'
+							},
+							and: 'other bits'
+						}
+					};
+
+				// create a reference cycle
+				logMeta.object.cycle = logMeta.object;
+
+				expectTrace.once().withExactArgs(logMessage, 2, {
+					text: 'some meta text',
+					object_has_stuff: 'inside',
+					object_and: 'other bits'
+				});
+			});
+
 
 			it('should log errors with nested fields flattend', function() {
 				var error = new ExtendedError("errormessage", "arg1", {"isan": "object"});

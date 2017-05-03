@@ -343,5 +343,40 @@ describe ('winston-azure-application-insights', function() {
 
 			winstonLogger.error(message, error);
 		});
+
+		describe('formatter', function() {
+
+			var winstonLogger,
+				clientMock,
+				expectTrace;
+
+			beforeEach(function() {
+				var freshClient = new appInsights.TelemetryClient('FAKEKEY');
+				winstonLogger = new(winston.Logger)({
+					transports: [
+						new winston.transports.AzureApplicationInsightsLogger({
+							client: freshClient,
+							formatter: (level, message) => `${level}-${message}`,
+						}),
+					],
+				});
+				clientMock = sinon.mock(freshClient);
+				expectTrace = clientMock.expects("trackTrace");
+			});
+
+			afterEach(function() {
+				clientMock.restore();
+			});
+
+			it('should log from winston with a formatter', function() {
+				var logMessage = "some log text...",
+					logLevel = 'debug';
+
+				expectTrace.once().withExactArgs(`${logLevel}-${logMessage}`, 0, {});
+
+				winstonLogger.log(logLevel, logMessage);
+			});
+		});
 	});
+
 });

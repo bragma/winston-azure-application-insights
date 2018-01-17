@@ -8,10 +8,8 @@ var winston = require('winston'),
 	appInsights = require("applicationinsights"),
 	transport = require('../lib/winston-azure-application-insights');
 
-afterEach(function() {
-	appInsights
-		.setAutoCollectExceptions(false)
-		.dispose();
+afterEach('teardown appInsights', function() {
+	appInsights.dispose();
 })
 
 describe ('winston-azure-application-insights', function() {

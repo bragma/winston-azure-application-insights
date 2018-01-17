@@ -76,6 +76,15 @@ If you receive the error:
 
 Then you didn't specify a suitable instrumentation key. See the section above.
 
+**I get an error "Zones already loaded"**
+
+Quick fix: upgrade to `applicationinsights@1.0.2`
+
+If you cannot upgrade, read on:
+
+This may be because your environment has implicitly loaded applicationinsights and called `.setup()`. This happens if you are running an Azure Function App and have `APPINSIGHTS_INSTRUMENTATIONKEY` set.
+The best solution to this is to load `applicationinsights` and pass in `appInsights.defaultClient` using the `client` option as per example 3.
+
 
 ## Options
 

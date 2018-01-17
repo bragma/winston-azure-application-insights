@@ -149,18 +149,18 @@ describe ('winston-azure-application-insights', function() {
 			});
 	
 			it('should log with correct log levels', function() {
-				clientMock.expects("trackTrace").once().withArgs('emerg', 4);
-				clientMock.expects("trackTrace").once().withArgs('alert', 4);
-				clientMock.expects("trackTrace").once().withArgs('crit', 4);
-				clientMock.expects("trackTrace").once().withArgs('error', 3);
-				clientMock.expects("trackTrace").once().withArgs('warning', 2);
-				clientMock.expects("trackTrace").once().withArgs('warn', 2);
-				clientMock.expects("trackTrace").once().withArgs('notice', 1);
-				clientMock.expects("trackTrace").once().withArgs('info', 1);
-				clientMock.expects("trackTrace").once().withArgs('verbose', 0);
-				clientMock.expects("trackTrace").once().withArgs('debug', 0);
-				clientMock.expects("trackTrace").once().withArgs('silly', 0);
-				clientMock.expects("trackTrace").once().withArgs('undefined', 1);
+				clientMock.expects("trackTrace").once().withArgs({ message: 'emerg', severity: 4, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'alert', severity: 4, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'crit', severity: 4, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'error', severity: 3, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'warning', severity: 2, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'warn', severity: 2, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'notice', severity: 1, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'info', severity: 1, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'verbose', severity: 0, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'debug', severity: 0, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'silly', severity: 0, properties: undefined });
+				clientMock.expects("trackTrace").once().withArgs({ message: 'undefined', severity: 1, properties: undefined });
 				
 				[ 'emerg', 'alert', 'crit', 'error', 'warning', 'warn', 'notice', 'info', 'verbose', 'debug', 'silly', 'undefined']
 				.forEach(function(level) {
@@ -175,8 +175,9 @@ describe ('winston-azure-application-insights', function() {
 				clientMock;
 
 			beforeEach(function() {
+				var freshClient = new appInsights.TelemetryClient('FAKEKEY');
 				aiLogger = new transport.AzureApplicationInsightsLogger(
-					{ key: 'FAKEKEY', treatErrorsAsExceptions: true }
+					{ client: freshClient, treatErrorsAsExceptions: true }
 				);
 				clientMock = sinon.mock(aiLogger.client);
 			})
@@ -215,22 +216,13 @@ describe ('winston-azure-application-insights', function() {
 			});
 
 			it('should track exceptions if level >= error and msg is a string', function() {
-				var error = new Error('error msg');
-/*
-				clientMock.expects("trackException").once().withArgs(error);
-				clientMock.expects("trackException").once().withArgs(error);
-				clientMock.expects("trackException").once().withArgs(error);
-				clientMock.expects("trackException").once().withArgs(error);
-				clientMock.expects("trackTrace").never();
-				clientMock.expects("trackTrace").never();
-				clientMock.expects("trackTrace").never();
-				clientMock.expects("trackTrace").never();
-*/
 				[ 'emerg', 'alert', 'crit', 'error']
 				.forEach(function(level) {
-					clientMock.expects("trackException").once().withArgs(error);
+					var exceptionMock = clientMock.expects("trackException").once();
 					clientMock.expects("trackTrace").never();
-					aiLogger.log(level, 'error msg');
+					aiLogger.log(level, 'log level custom error msg');
+					assert.equal(exceptionMock.args[0][0].exception.message, 'log level custom error msg');
+					assert.equal(exceptionMock.args[0][0].properties.message, 'log level custom error msg');
 				});
 				clientMock.verify();
 			});
@@ -239,20 +231,28 @@ describe ('winston-azure-application-insights', function() {
 				var error = new Error('error msg');
 				var expectedCall = clientMock.expects("trackException");
 
-				expectedCall.once().withArgs(error);
+				expectedCall.once().withArgs({
+					exception: error,
+					properties: {},
+				});
 				aiLogger.log('error', error);
 				clientMock.verify();
-				assert.equal(expectedCall.args[0][0].message, error.message);
+				assert.equal(expectedCall.args[0][0].exception.message, error.message);
 			});
 
 			it('should track exceptions if level == error and meta is an Error obj', function() {
 				var error = new Error('error msg');
 				var expectedCall = clientMock.expects("trackException");
 
-				expectedCall.once().withArgs(error);
+				expectedCall.once().withArgs({
+					exception: error,
+					properties: {
+						message: 'some message',
+					},
+				});
 				aiLogger.log('error', 'some message', error);
 				clientMock.verify();
-				assert.equal(expectedCall.args[0][0].message, error.message);
+				assert.equal(expectedCall.args[0][0].exception.message, error.message);
 			});
 		});
 	});
@@ -274,12 +274,14 @@ describe ('winston-azure-application-insights', function() {
 			expectTrace;
 
 		beforeEach(function() {
+
+			var freshClient = new appInsights.TelemetryClient('FAKEKEY');
 			
 			winstonLogger = new(winston.Logger)({
-				transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY' })	]
+				transports: [ new winston.transports.AzureApplicationInsightsLogger({ client: freshClient })	]
 			});
 
-			clientMock = sinon.mock(appInsights.defaultClient);
+			clientMock = sinon.mock(freshClient);
 			expectTrace = clientMock.expects("trackTrace");
 		})
 		
@@ -295,19 +297,29 @@ describe ('winston-azure-application-insights', function() {
 					value: 42
 				};
 
-			expectTrace.once().withExactArgs(logMessage, 3, logMeta);
+			expectTrace.atMost(1);
 
 			winstonLogger.log(logLevel, logMessage, logMeta);
+
+			var traceArg = expectTrace.args[0][0];
+
+			assert.equal(traceArg.message, logMessage);
+			assert.equal(traceArg.severity, 3);
+			assert.equal(traceArg.properties, logMeta);
 		});
 
 		it('should log errors with all fields', function() {
 			var error = new ExtendedError("errormessage", "arg1", "arg2");
 
-			expectTrace.once().withExactArgs(error.message, 3, {
-				arg1: error.arg1,
-				arg2: error.arg2,
-				name: error.name,
-				stack: error.stack
+			expectTrace.once().withArgs({
+				message: error.message,
+				severity: 3,
+				properties: {
+					arg1: error.arg1,
+					arg2: error.arg2,
+					name: error.name,
+					stack: error.stack,
+				},
 			});
 
 			winstonLogger.error(error);
@@ -317,12 +329,16 @@ describe ('winston-azure-application-insights', function() {
 			var message = "message";
 			var error = new ExtendedError("errormessage", "arg1", "arg2");
 
-			expectTrace.once().withExactArgs(message, 3, {
-				arg1: error.arg1,
-				arg2: error.arg2,
-				message: error.message,
-				name: error.name,
-				stack: error.stack
+			expectTrace.once().withArgs({
+				message: message,
+				severity: 3,
+				properties: {
+					arg1: error.arg1,
+					arg2: error.arg2,
+					message: error.message,
+					name: error.name,
+					stack: error.stack,
+				},
 			});
 
 			winstonLogger.error(message, error);

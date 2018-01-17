@@ -3,8 +3,7 @@ winston-azure-application-insights
 
 An [Azure Application Insights][0] transport for [Winston][1] logging library. Allows to log on App Insights trace with Winston.
 
-**Note:** winston-azure-application-insights version 1.1 is _only_ compatible with applicationinsights client versions through to 0.22, [due to breaking changes][2].
-If you are using applicationinsights ~1.0 then please use the latest version of this library. Failure to select the correct version will cause tracking will silently fail.
+This library intends to be compatible with `applicationinsights` `1.0`. If you are using an older version of the AppInsights NodeJS client, see the `1.1.x` releases.
 
 ## Installation
 

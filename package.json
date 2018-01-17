@@ -22,9 +22,9 @@
   "author": "Marco Braga (Bragma)",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^2.3.4",
     "chai": "^3.4.1",
-    "sinon": "^1.17.6"
+    "mocha": "^2.3.4",
+    "sinon": "^2.4.1"
   },
   "dependencies": {
 <<<<<<< HEAD

@@ -133,7 +133,7 @@ describe ('winston-azure-application-insights', function() {
 			
 			beforeEach(function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({ key: 'FAKEKEY' });
-				clientMock = sinon.mock(appInsights.client);
+				clientMock = sinon.mock(appInsights.defaultClient);
 				expectTrace = clientMock.expects("trackTrace");
 			})
 			
@@ -281,7 +281,7 @@ describe ('winston-azure-application-insights', function() {
 				transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY' })	]
 			});
 
-			clientMock = sinon.mock(appInsights.client);
+			clientMock = sinon.mock(appInsights.defaultClient);
 			expectTrace = clientMock.expects("trackTrace");
 		})
 		

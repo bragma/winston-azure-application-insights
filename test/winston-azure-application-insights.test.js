@@ -49,7 +49,7 @@ describe ('winston-azure-application-insights', function() {
 				
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger({
-						client: appInsights.getClient('FAKEKEY')
+						client: new appInsights.TelemetryClient('FAKEKEY')
 					});
 				});
 				

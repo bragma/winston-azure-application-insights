@@ -20,6 +20,13 @@
     "logging"
   ],
   "author": "Marco Braga (Bragma)",
+  "contributors": [
+    {
+      "name": "Will Morgan",
+      "email": "jobs+npm@willmorgan.co.uk",
+      "url": "http://willmorgan.co.uk"
+    }
+  ],
   "license": "MIT",
   "devDependencies": {
     "chai": "^3.4.1",

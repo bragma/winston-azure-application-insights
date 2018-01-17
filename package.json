@@ -27,7 +27,11 @@
     "sinon": "^1.17.6"
   },
   "dependencies": {
+<<<<<<< HEAD
     "applicationinsights": "~0.17.1 <1",
+=======
+    "applicationinsights": "^1.0.0",
+>>>>>>> Upgrade applicationinsights package dependency to ^1.0.0
     "winston": "^2.3.0"
   },
   "bugs": {

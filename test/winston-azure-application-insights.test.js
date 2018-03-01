@@ -347,34 +347,62 @@ describe ('winston-azure-application-insights', function() {
 		describe('formatter', function() {
 
 			var winstonLogger,
-				clientMock,
-				expectTrace;
+				formatterSpy,
+				clientMock;
+
+			function testFormatter(methodName, ownLevel, options) {
+				return Object.assign({}, options, {
+					'_wasFormatted': true,
+				});
+			}
 
 			beforeEach(function() {
 				var freshClient = new appInsights.TelemetryClient('FAKEKEY');
-				winstonLogger = new(winston.Logger)({
+				formatterSpy = sinon.spy(testFormatter);
+				winstonLogger = new (winston.Logger)({
 					transports: [
-						new winston.transports.AzureApplicationInsightsLogger({
+						new transport.AzureApplicationInsightsLogger({
 							client: freshClient,
-							formatter: (level, message) => `${level}-${message}`,
+							formatter: formatterSpy,
+							treatErrorsAsExceptions: true,
 						}),
 					],
 				});
 				clientMock = sinon.mock(freshClient);
-				expectTrace = clientMock.expects("trackTrace");
 			});
 
 			afterEach(function() {
 				clientMock.restore();
 			});
 
-			it('should log from winston with a formatter', function() {
-				var logMessage = "some log text...",
-					logLevel = 'debug';
+			it('passes log traces through a formatter', function() {
+				var logMessage = "some log text...";
+				var logLevel = 'info';
 
-				expectTrace.once().withExactArgs(`${logLevel}-${logMessage}`, 0, {});
+				var expectTrace = clientMock.expects("trackTrace");
 
 				winstonLogger.log(logLevel, logMessage);
+				assert.isTrue(formatterSpy.called);
+				expectTrace.once().calledWithExactly(formatterSpy.firstCall.returnValue);
+				var formatterArgs = formatterSpy.firstCall.args;
+				assert.equal(formatterArgs[0], 'trackTrace');
+				assert.equal(formatterArgs[1], logLevel);
+				expectTrace.verify();
+			});
+
+			it('passes log exceptions through a formatter', function() {
+				var logMessage = "some log text...";
+				var logLevel = 'error';
+
+				var expectException = clientMock.expects("trackException");
+
+				winstonLogger.log(logLevel, logMessage);
+				assert.isTrue(formatterSpy.called);
+				expectException.once().calledWithExactly(formatterSpy.firstCall.returnValue);
+				var formatterArgs = formatterSpy.firstCall.args;
+				assert.equal(formatterArgs[0], 'trackException');
+				assert.equal(formatterArgs[1], logLevel);
+				expectException.verify();
 			});
 		});
 	});

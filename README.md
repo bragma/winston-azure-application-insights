@@ -90,8 +90,9 @@ The best solution to this is to load `applicationinsights` and pass in `appInsig
 
 * **level**: lowest logging level transport to be logged (default: `info`)
 * **silent**: Boolean flag indicating whether to suppress output (default: `false`)
-* **treatErrorsAsExceptions**: Boolean flag indicating whether to treat errors as exceptions. 
+* **treatErrorsAsExceptions**: Boolean flag indicating whether to treat errors as exceptions.
 See section below for more details (default: `false`).
+* **formatter**: format and mutate arguments passed to applicationinsights `track*` methods with a signature of `trackMethodName, userLevel, options` (default: `noop`)
 
 **SDK integration options (required):**
 
@@ -138,3 +139,36 @@ How it works:
 * `winstonLogger.log('error', new Error('error message'));` will trigger an app insights `trackException` with the Error object as argument
 
 * `winstonLogger.log('error', 'error message', new Error('error message'));` will trigger an app insights `trackException` with the Error object as argument
+
+## Formatter
+
+You can specify a `formatter` option to override the objects passed to `trackTrace` or `trackException`.
+This is an easy way to add some "global" context to your logging, and follows the `formatter` pattern used in other Winston transports.
+
+If you want to enhance the default formatting functionality then the `defaultFormatter` is exposed, too.
+
+```javascript
+var aiWinstonPackage = require('winston-azure-application-insights');
+var AzureApplicationInsightsLogger = aiWinstonPackage.AzureApplicationInsightsLogger;
+var defaultFormatter = aiWinstonPackage.defaultFormatter;
+
+winston.add(AzureApplicationInsightsLogger, {
+	// override the formatter to add the app version to the property metadata:
+	formatter: function addAppVersion(traceOrException, userLevel, options) {
+		var props = options.properties || {};
+		// add "myAppVersion" from env:
+		var formattedProps = Object.assign({}, props, {
+			myAppVersion: process.env.MY_APP_VERSION,
+		});
+		// pass back to defaultFormatter:
+		return defaultFormatter(
+			traceOrException,
+			userLevel,
+			// make changes to properties:
+			Object.assign({}, options, {
+				properties: formattedProps,
+			})
+		);
+	}
+});
+```

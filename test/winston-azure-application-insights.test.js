@@ -278,7 +278,10 @@ describe ('winston-azure-application-insights', function() {
 		beforeEach(function() {
 			
 			winstonLogger = new(winston.Logger)({
-				transports: [ new winston.transports.AzureApplicationInsightsLogger({ key: 'FAKEKEY' })	]
+				transports: [ new winston.transports.AzureApplicationInsightsLogger(
+						{ key: 'FAKEKEY', level: 'debug' }
+					)	
+				]
 			});
 
 			clientMock = sinon.mock(appInsights.client);
@@ -328,6 +331,49 @@ describe ('winston-azure-application-insights', function() {
 			});
 
 			winstonLogger.error(message, error);
+		});
+	});
+
+	describe('winston azure vmware', function() {
+		
+		function ExtendedError(message, arg1, arg2) {
+			this.message = message;
+			this.name = "ExtendedError";
+			this.arg1 = arg1;
+			this.arg2 = arg2;
+			Error.captureStackTrace(this, ExtendedError);
+		}
+		ExtendedError.prototype = Object.create(Error.prototype);
+		ExtendedError.prototype.constructor = ExtendedError;
+
+		var winstonLogger,
+			clientMock,
+			expectTrace;
+
+		beforeEach(function() {
+			
+			winstonLogger = new(winston.Logger)({
+				transports: [ new winston.transports.AzureApplicationInsightsLogger(
+						{ key: 'FAKEKEY', level: 'debug', formatter: (level, message) => `${level}-${message}` }
+					)	
+				]
+			});
+
+			clientMock = sinon.mock(appInsights.client);
+			expectTrace = clientMock.expects("trackTrace");
+		})
+		
+		afterEach(function() {
+			clientMock.restore();
+		});
+
+		it('should log from winston with a formatter', function() {
+			var logMessage = "some log text...",
+				logLevel = 'debug';
+
+			expectTrace.once().withExactArgs(`${logLevel}-${logMessage}`, 0, {});
+
+			winstonLogger.log(logLevel, logMessage);
 		});
 	});
 });

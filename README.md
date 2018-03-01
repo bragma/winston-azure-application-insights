@@ -82,7 +82,8 @@ Then you didn't specify a suitable instrumentation key. See the section above.
 
 * **level**: lowest logging level transport to be logged (default: `info`)
 * **silent**: Boolean flag indicating whether to suppress output (default: `false`)
-* **treatErrorsAsExceptions**: Boolean flag indicating whether to treat errors as exceptions. 
+* **formatMeta**: Function that can be used to pre-process the log metadata before it is sent to azure. As application insights doesn't support nested properties, you can use the special value `"flat"` to flatten nested properties with underscores (default: metadata is not modified)
+* **treatErrorsAsExceptions**: Boolean flag indicating whether to treat errors as exceptions.
 See section below for more details (default: `false`).
 
 **SDK integration options (required):**

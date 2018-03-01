@@ -407,4 +407,13 @@ describe ('winston-azure-application-insights', function() {
 		});
 	});
 
+	describe('exports', function () {
+		it('exposes defaultFormatter', function () {
+			assert.isFunction(transport.defaultFormatter);
+		});
+		it('exposes getMessageLevel', function () {
+			assert.isFunction(transport.getMessageLevel);
+		});
+	});
+
 });

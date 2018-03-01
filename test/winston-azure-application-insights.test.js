@@ -119,7 +119,7 @@ describe ('winston-azure-application-insights', function() {
 					key: 'FAKEKEY'
 				});
 
-				assert.ok(winston.transports.AzureApplicationInsightsLogger);
+				assert.ok(transport.AzureApplicationInsightsLogger);
 			});
 		});
 
@@ -278,7 +278,7 @@ describe ('winston-azure-application-insights', function() {
 			var freshClient = new appInsights.TelemetryClient('FAKEKEY');
 
 			winstonLogger = new(winston.Logger)({
-				transports: [ new winston.transports.AzureApplicationInsightsLogger({ client: freshClient })	]
+				transports: [ new transport.AzureApplicationInsightsLogger({ client: freshClient })	]
 			});
 
 			clientMock = sinon.mock(freshClient);

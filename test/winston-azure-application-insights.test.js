@@ -3,7 +3,7 @@
 
 var assert = require('chai').assert,
 	sinon = require('sinon');
-	
+
 var winston = require('winston'),
 	appInsights = require("applicationinsights"),
 	transport = require('../lib/winston-azure-application-insights');
@@ -15,126 +15,126 @@ afterEach('teardown appInsights', function() {
 describe ('winston-azure-application-insights', function() {
 	describe('class', function() {
 		describe('constructor', function() {
-	
+
 			beforeEach(function() {
 				delete process.env['APPINSIGHTS_INSTRUMENTATIONKEY'];
 			});
-	
+
 			it('should fail if no instrumentation insights instance, client or key specified', function() {
 				assert.throws(function() {
 					new transport.AzureApplicationInsightsLogger();
 				}, /key not found/);
 			});
-			
+
 			it('should accept an App Insights instance with the insights option', function() {
-				
+
 				var aiLogger;
-				
+
 				assert.doesNotThrow(function() {
 					appInsights.setup('FAKEKEY');
-				
+
 					aiLogger = new transport.AzureApplicationInsightsLogger({
 						insights: appInsights
 					});
 				});
-				
+
 				assert.ok(aiLogger.client);
 			});
-			
+
 			it('should accept an App Insights client with the client option', function() {
-				
+
 				var aiLogger;
-				
+
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger({
 						client: new appInsights.TelemetryClient('FAKEKEY')
 					});
 				});
-				
+
 				assert.ok(aiLogger.client);
 			});
-	
+
 			it('should accept an instrumentation key with the key option', function() {
-				
+
 				var aiLogger;
-	
+
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger({
 						key: 'FAKEKEY'
 					});
 				});
-	
+
 				assert.ok(aiLogger.client);
 			});
-	
+
 			it('should use the APPINSIGHTS_INSTRUMENTATIONKEY environment variable if defined', function() {
-				
+
 				var aiLogger;
-	
+
 				process.env['APPINSIGHTS_INSTRUMENTATIONKEY'] = 'FAKEKEY';
-	
+
 				assert.doesNotThrow(function() {
 					aiLogger = new transport.AzureApplicationInsightsLogger();
 				});
-	
+
 				assert.ok(aiLogger.client);
 			});
-			
+
 			it('should set default logging level to info', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 						key: 'FAKEKEY'
 					});
-					
-				assert.equal(aiLogger.level, 'info'); 
+
+				assert.equal(aiLogger.level, 'info');
 			});
-			
+
 			it('should set logging level', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 						key: 'FAKEKEY',
 						level: 'warn'
 					});
-					
-				assert.equal(aiLogger.level, 'warn'); 
+
+				assert.equal(aiLogger.level, 'warn');
 			});
-			
+
 			it('should set default silent to false', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY'
 				});
-					
-				assert.notOk(aiLogger.silent); 
+
+				assert.notOk(aiLogger.silent);
 			});
-	
+
 			it('should set silent', function() {
 				var aiLogger = new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY',
 					silent: true
 				});
-					
-				assert.ok(aiLogger.silent); 
+
+				assert.ok(aiLogger.silent);
 			});
-			
+
 			it('should declare a Winston logger', function() {
 				new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY'
 				});
-				
-				assert.ok(winston.transports.AzureApplicationInsightsLogger);
+
+				assert.ok(transport.AzureApplicationInsightsLogger);
 			});
 		});
-		
+
 		describe('#log', function() {
-	
+
 			var aiLogger,
 				clientMock,
 				expectTrace;
-			
+
 			beforeEach(function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({ key: 'FAKEKEY' });
 				clientMock = sinon.mock(appInsights.defaultClient);
 				expectTrace = clientMock.expects("trackTrace");
 			})
-			
+
 			afterEach(function() {
 				clientMock.restore();
 			});
@@ -142,12 +142,12 @@ describe ('winston-azure-application-insights', function() {
 
 			it('should not log if silent', function() {
 				aiLogger.silent = true;
-	
+
 				expectTrace.never();
-				
+
 				aiLogger.log('info', 'some log text...');
 			});
-	
+
 			it('should log with correct log levels', function() {
 				clientMock.expects("trackTrace").once().withArgs({ message: 'emerg', severity: 4, properties: undefined });
 				clientMock.expects("trackTrace").once().withArgs({ message: 'alert', severity: 4, properties: undefined });
@@ -161,16 +161,16 @@ describe ('winston-azure-application-insights', function() {
 				clientMock.expects("trackTrace").once().withArgs({ message: 'debug', severity: 0, properties: undefined });
 				clientMock.expects("trackTrace").once().withArgs({ message: 'silly', severity: 0, properties: undefined });
 				clientMock.expects("trackTrace").once().withArgs({ message: 'undefined', severity: 1, properties: undefined });
-				
+
 				[ 'emerg', 'alert', 'crit', 'error', 'warning', 'warn', 'notice', 'info', 'verbose', 'debug', 'silly', 'undefined']
 				.forEach(function(level) {
 					aiLogger.log(level, level);
 				});
 			});
 		});
-		
+
 		describe('#log errors as exceptions', function() {
-	
+
 			var aiLogger,
 				clientMock;
 
@@ -181,7 +181,7 @@ describe ('winston-azure-application-insights', function() {
 				);
 				clientMock = sinon.mock(aiLogger.client);
 			})
-			
+
 			afterEach(function() {
 				clientMock.restore();
 			});
@@ -189,19 +189,19 @@ describe ('winston-azure-application-insights', function() {
 
 			it('should not track exceptions with default option', function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({ key: 'FAKEKEY' });
-				
+
 				clientMock.expects("trackException").never();
-				
+
 				aiLogger.log('error', 'error message');
 			});
-			
+
 			it('should not track exceptions if the option is off', function() {
 				aiLogger = new transport.AzureApplicationInsightsLogger({
 					key: 'FAKEKEY', treatErrorsAsExceptions: false
 				});
-	
+
 				clientMock.expects("trackException").never();
-				
+
 				aiLogger.log('error', 'error message');
 			});
 
@@ -258,7 +258,7 @@ describe ('winston-azure-application-insights', function() {
 	});
 
 	describe('winston', function() {
-		
+
 		function ExtendedError(message, arg1, arg2) {
 			this.message = message;
 			this.name = "ExtendedError";
@@ -276,19 +276,19 @@ describe ('winston-azure-application-insights', function() {
 		beforeEach(function() {
 
 			var freshClient = new appInsights.TelemetryClient('FAKEKEY');
-			
+
 			winstonLogger = new(winston.Logger)({
-				transports: [ new winston.transports.AzureApplicationInsightsLogger({ client: freshClient })	]
+				transports: [ new transport.AzureApplicationInsightsLogger({ client: freshClient })	]
 			});
 
 			clientMock = sinon.mock(freshClient);
 			expectTrace = clientMock.expects("trackTrace");
 		})
-		
+
 		afterEach(function() {
 			clientMock.restore();
 		});
-	
+
 		it('should log from winston', function() {
 			var logMessage = "some log text...",
 				logLevel = 'error',
@@ -343,5 +343,77 @@ describe ('winston-azure-application-insights', function() {
 
 			winstonLogger.error(message, error);
 		});
+
+		describe('formatter', function() {
+
+			var winstonLogger,
+				formatterSpy,
+				clientMock;
+
+			function testFormatter(methodName, ownLevel, options) {
+				return Object.assign({}, options, {
+					'_wasFormatted': true,
+				});
+			}
+
+			beforeEach(function() {
+				var freshClient = new appInsights.TelemetryClient('FAKEKEY');
+				formatterSpy = sinon.spy(testFormatter);
+				winstonLogger = new (winston.Logger)({
+					transports: [
+						new transport.AzureApplicationInsightsLogger({
+							client: freshClient,
+							formatter: formatterSpy,
+							treatErrorsAsExceptions: true,
+						}),
+					],
+				});
+				clientMock = sinon.mock(freshClient);
+			});
+
+			afterEach(function() {
+				clientMock.restore();
+			});
+
+			it('passes log traces through a formatter', function() {
+				var logMessage = "some log text...";
+				var logLevel = 'info';
+
+				var expectTrace = clientMock.expects("trackTrace");
+
+				winstonLogger.log(logLevel, logMessage);
+				assert.isTrue(formatterSpy.called);
+				expectTrace.once().calledWithExactly(formatterSpy.firstCall.returnValue);
+				var formatterArgs = formatterSpy.firstCall.args;
+				assert.equal(formatterArgs[0], 'trackTrace');
+				assert.equal(formatterArgs[1], logLevel);
+				expectTrace.verify();
+			});
+
+			it('passes log exceptions through a formatter', function() {
+				var logMessage = "some log text...";
+				var logLevel = 'error';
+
+				var expectException = clientMock.expects("trackException");
+
+				winstonLogger.log(logLevel, logMessage);
+				assert.isTrue(formatterSpy.called);
+				expectException.once().calledWithExactly(formatterSpy.firstCall.returnValue);
+				var formatterArgs = formatterSpy.firstCall.args;
+				assert.equal(formatterArgs[0], 'trackException');
+				assert.equal(formatterArgs[1], logLevel);
+				expectException.verify();
+			});
+		});
 	});
+
+	describe('exports', function () {
+		it('exposes defaultFormatter', function () {
+			assert.isFunction(transport.defaultFormatter);
+		});
+		it('exposes getMessageLevel', function () {
+			assert.isFunction(transport.getMessageLevel);
+		});
+	});
+
 });

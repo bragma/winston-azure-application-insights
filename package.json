@@ -1,6 +1,6 @@
 {
   "name": "winston-azure-application-insights",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "Azure Application Insights transport for Winston",
   "main": "./lib/winston-azure-application-insights.js",
   "directories": {
@@ -29,13 +29,16 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "applicationinsights": "^1.0.4",
     "chai": "^4.1.2",
     "mocha": "^5.0.1",
     "sinon": "^4.4.2"
   },
   "dependencies": {
-    "applicationinsights": "^1.0",
     "winston": "^2.3.0"
+  },
+  "peerDependencies": {
+    "applicationinsights": "^1.0.0"
   },
   "bugs": {
     "url": "https://github.com/bragma/winston-azure-application-insights/issues"

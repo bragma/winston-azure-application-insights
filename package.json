@@ -38,7 +38,7 @@
     "winston": "^2.3.0"
   },
   "peerDependencies": {
-    "applicationinsights": "^1.0.0"
+    "applicationinsights": ">=1.0.0"
   },
   "bugs": {
     "url": "https://github.com/bragma/winston-azure-application-insights/issues"
